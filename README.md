@@ -1,5 +1,7 @@
 # SchemaValidator
 
+[![Build Status](https://travis-ci.org/wendbv/schemavalidator.svg)](https://travis-ci.org/wendbv/schemavalidator)
+
 A local JSON schema validator based on [jsonschema](https://github.com/Julian/jsonschema/)
 
 SchemaValidator can be used to validate documents against a set of locally
