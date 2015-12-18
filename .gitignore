@@ -1,7 +1,6 @@
 .cache/
 .coverage
 MANIFEST
-README.md
 __pycache__/
 build/
 dist/
