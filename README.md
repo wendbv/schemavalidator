@@ -65,6 +65,7 @@ and `item.json`, which defines the items in the list. Both are stored in the
         }
     }
 }
+```
 
 Using `SchemaValidator` we can easily check a document against `list.json`
 without having to do any manual referencing.
