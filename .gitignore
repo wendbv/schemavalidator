@@ -1,0 +1,9 @@
+.cache/
+.coverage
+MANIFEST
+README.md
+__pycache__/
+build/
+dist/
+schemavalidator.egg-info/
+venv/
