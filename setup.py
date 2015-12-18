@@ -9,8 +9,7 @@ setup(
     author='Daan Porru (Wend)',
     author_email='daan@wend.nl',
     license='MIT',
-    url='https://github.com/wend/schemavalidator',
-    download_url='https://github.com/wend/schemavalidator/tarball/0.1.0b1',
+    url='https://github.com/wendbv/schemavalidator',
     keywords=['json schema', 'validator'],
     classifiers=[
         'Development Status :: 4 - Beta',
