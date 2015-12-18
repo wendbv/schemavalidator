@@ -54,7 +54,7 @@ and `item.json`, which defines the items in the list. Both are stored in the
     "$schema": "http://json-schema.org/draft-04/schema#",
     "id": "item.json",
     "description": "Just an item",
-    "type": "object"
+    "type": "object",
     "properties": {
         "name": {
             "type": "string"
