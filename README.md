@@ -1,6 +1,8 @@
 # SchemaValidator
 
-[![Build Status](https://travis-ci.org/wendbv/schemavalidator.svg)](https://travis-ci.org/wendbv/schemavalidator)
+[![Build Status](http://img.shields.io/travis/wendbv/schemavalidator.svg)](https://travis-ci.org/wendbv/schemavalidator)
+[![Coverage Status](http://img.shields.io/coveralls/wendbv/schemavalidator.svg)](https://coveralls.io/r/wendbv/schemavalidator)
+[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://tldrlegal.com/license/mit-license)
 
 A local JSON schema validator based on [jsonschema](https://github.com/Julian/jsonschema/)
 
