@@ -21,7 +21,7 @@ def test_load_schemas_non_existing_schema_file(schema_validator, monkeypatch,
     monkeypatch.undo()
     monkeypatch.setattr(
         schema_validator, 'get_schema_files',
-        lambda *args: ['non_existend.json'])
+        lambda *args: ['non_existent.json'])
     with pytest.raises(SchemaError):
         schema_validator.load_schemas(str(tmpdir))
 
