@@ -1,3 +1,4 @@
+from collections import namedtuple
 import jsonschema
 import pytest
 
@@ -13,6 +14,13 @@ def raise_exception(*args, **kwargs):
 @pytest.fixture
 def schema_validator(monkeypatch):
     monkeypatch.setattr(SchemaValidator, 'load_schemas', lambda self, p: None)
+    monkeypatch.setattr(SchemaValidator, '_load_strictness_schema',
+                        lambda self, p: None)
+
+    Validator = namedtuple('Validator', ['validate'])
+    strictness = Validator(lambda x: None)
+    SchemaValidator.strictness_validator = strictness
+
     return SchemaValidator()
 
 

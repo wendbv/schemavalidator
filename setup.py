@@ -15,7 +15,7 @@ setup(
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 3',
     ],
-    install_requires=['jsonschema'],
+    install_requires=['jsonschema', 'requests'],
     extras_require={
         'test': ['pytest', 'pytest-cov', 'coverage', 'coveralls'],
     }
