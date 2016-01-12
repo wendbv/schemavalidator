@@ -5,8 +5,7 @@ try:
     from json import JSONDecodeError
 except:
     # json in python < 3.5 has no JSONDecodeError
-    class JSONDecodeError(ValueError):
-        pass
+    JSONDecodeError = ValueError
 
 import os
 
