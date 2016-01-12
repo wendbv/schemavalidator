@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 import jsonschema
+import requests
 import pytest
 
 from schemavalidator import SchemaValidator, SchemaError, UnkownSchemaError,\
@@ -174,3 +175,19 @@ def test_validation_error():
         raise SchemaValidationError('First row\nsecond row')
     except SchemaValidationError as e:
         assert str(e) == 'First row'
+
+
+def test_load_strictness_schema(schema_validator, monkeypatch, mocker):
+    # Undo mockeypatch so we can access _load_strictness_schema.
+    monkeypatch.undo()
+
+    r = mocker.stub()
+    r.json = mocker.stub()
+    mocker.patch.object(r, 'json', return_value='json')
+    mocker.patch('requests.get', return_value=r)
+    mocker.patch('jsonschema.Draft4Validator')
+
+    schema_validator._load_strictness_schema('schema_uri')
+
+    requests.get.assert_called_once_with('schema_uri')
+    jsonschema.Draft4Validator.assert_called_once_with('json')

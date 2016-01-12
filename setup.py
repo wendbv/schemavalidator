@@ -17,6 +17,7 @@ setup(
     ],
     install_requires=['jsonschema', 'requests'],
     extras_require={
-        'test': ['pytest', 'pytest-cov', 'coverage', 'coveralls'],
+        'test': ['pytest', 'pytest-cov', 'coverage', 'coveralls',
+                 'pytest-mock'],
     }
 )
