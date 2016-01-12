@@ -1,4 +1,13 @@
 import json
+
+# Hack to be compatible with json in python < 3.5
+try:
+    from json import JSONDecodeError
+except:
+    # json in python < 3.5 has no JSONDecodeError
+    class JSONDecodeError(TypeError):
+        pass
+
 import os
 
 import jsonschema
@@ -91,7 +100,7 @@ class SchemaValidator(object):
                     self.schemas[schema['id']] = schema
             except OSError as e:
                 raise SchemaOpenError(e, schema_file_name) from e
-            except json.JSONDecodeError as e:
+            except JSONDecodeError as e:
                 raise SchemaJSONError(e, schema_file_name) from e
             except jsonschema.exceptions.SchemaError as e:
                 raise SchemaValidError(e, schema_file_name) from e
