@@ -1,9 +1,9 @@
 import json
 import os
 
-import requests
 import jsonschema
 from jsonschema.exceptions import ValidationError
+import requests
 
 
 class SchemaValidatorError(Exception):
