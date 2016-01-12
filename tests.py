@@ -1,9 +1,16 @@
+from collections import namedtuple
+
 import jsonschema
+import requests
 import pytest
 
 from schemavalidator import SchemaValidator, SchemaError, UnkownSchemaError,\
-    SchemaValidatorError, SchemaValidationError
+    SchemaValidatorError, SchemaValidationError, SchemaOpenError,\
+    SchemaJSONError, SchemaKeyError, SchemaValidError, SchemaStrictnessError
 from schemavalidator.schemavalidator import Resolver
+
+# Validator mock
+Validator = namedtuple('Validator', ['validate'])
 
 
 def raise_exception(*args, **kwargs):
@@ -13,6 +20,12 @@ def raise_exception(*args, **kwargs):
 @pytest.fixture
 def schema_validator(monkeypatch):
     monkeypatch.setattr(SchemaValidator, 'load_schemas', lambda self, p: None)
+    monkeypatch.setattr(SchemaValidator, '_load_strictness_schema',
+                        lambda self, p: None)
+
+    strictness = Validator(lambda x: None)
+    SchemaValidator.strictness_validator = strictness
+
     return SchemaValidator()
 
 
@@ -22,7 +35,7 @@ def test_load_schemas_non_existing_schema_file(schema_validator, monkeypatch,
     monkeypatch.setattr(
         schema_validator, 'get_schema_files',
         lambda *args: ['non_existent.json'])
-    with pytest.raises(SchemaError):
+    with pytest.raises(SchemaOpenError):
         schema_validator.load_schemas(str(tmpdir))
 
 
@@ -32,7 +45,7 @@ def test_load_schemas_invalid_json(schema_validator, monkeypatch, tmpdir):
     schema_file.write('{')
     monkeypatch.setattr(
         schema_validator, 'get_schema_files', lambda *args: ['test.json'])
-    with pytest.raises(SchemaError):
+    with pytest.raises(SchemaJSONError):
         schema_validator.load_schemas(str(tmpdir))
 
 
@@ -42,17 +55,34 @@ def test_load_schemas_no_schema_id(schema_validator, monkeypatch, tmpdir):
     schema_file.write('{"$schema":"no_id", "type":"string"}')
     monkeypatch.setattr(
         schema_validator, 'get_schema_files', lambda *args: ['test.json'])
-    with pytest.raises(SchemaError):
+    with pytest.raises(SchemaKeyError):
         schema_validator.load_schemas(str(tmpdir))
 
 
 def test_load_schemas_invalid_schema(schema_validator, monkeypatch, tmpdir):
     monkeypatch.undo()
     schema_file = tmpdir.join('test.json')
-    schema_file.write('{"$schema":"invalid","type"="objects"}')
+    schema_file.write('{"$schema":"invalid","type":"objects"}')
     monkeypatch.setattr(
         schema_validator, 'get_schema_files', lambda *args: ['test.json'])
-    with pytest.raises(SchemaError):
+    with pytest.raises(SchemaValidError):
+        schema_validator.load_schemas(str(tmpdir))
+
+
+def test_load_schema_invalid_strictness(schema_validator, monkeypatch, tmpdir):
+    monkeypatch.undo()
+    schema_file = tmpdir.join('test.json')
+    schema_file.write('{"$schema":"invalid_strictness","type": "string"}')
+    monkeypatch.setattr(
+        schema_validator, 'get_schema_files', lambda *args: ['test.json'])
+
+    def raise_exception(x):
+        raise jsonschema.exceptions.ValidationError('Mocked validation error')
+
+    strictness = Validator(raise_exception)
+    schema_validator.strictness_validator = strictness
+
+    with pytest.raises(SchemaStrictnessError):
         schema_validator.load_schemas(str(tmpdir))
 
 
@@ -145,3 +175,19 @@ def test_validation_error():
         raise SchemaValidationError('First row\nsecond row')
     except SchemaValidationError as e:
         assert str(e) == 'First row'
+
+
+def test_load_strictness_schema(schema_validator, monkeypatch, mocker):
+    # Undo mockeypatch so we can access _load_strictness_schema.
+    monkeypatch.undo()
+
+    r = mocker.stub()
+    r.json = mocker.stub()
+    mocker.patch.object(r, 'json', return_value='json')
+    mocker.patch('requests.get', return_value=r)
+    mocker.patch('jsonschema.Draft4Validator')
+
+    schema_validator._load_strictness_schema('schema_uri')
+
+    requests.get.assert_called_once_with('schema_uri')
+    jsonschema.Draft4Validator.assert_called_once_with('json')
