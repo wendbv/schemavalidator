@@ -73,7 +73,7 @@ def test_get_schema(schema_validator, monkeypatch):
     assert schema_validator.get_schema('test_schema') == 'test'
 
 
-def test_get_schema_non_existend(schema_validator, monkeypatch):
+def test_get_schema_non_existent(schema_validator, monkeypatch):
     monkeypatch.setattr(schema_validator, 'schemas', {})
     with pytest.raises(UnkownSchemaError):
         schema_validator.get_schema('does not exist')
