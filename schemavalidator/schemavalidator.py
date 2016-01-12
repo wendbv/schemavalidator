@@ -7,9 +7,7 @@ import requests
 
 
 class SchemaValidatorError(Exception):
-    """
-    Base Exception for the schemavalidator module.
-    """
+    """Base Exception for the schemavalidator module."""
     pass
 
 
@@ -25,14 +23,33 @@ class SchemaValidationError(SchemaValidatorError):
 
 
 class SchemaError(SchemaValidatorError):
-    """
-    Raise when an error occurs during validation of a schema.
-    """
+    """Raise when an error occurs during validation of a schema."""
 
-    def __init__(self, schema_file_name, *args, **kwargs):
-        message = "An error occured while parsing '{}'"\
-            .format(schema_file_name)
+    def __init__(self, original_e, schema_file_name, *args, **kwargs):
+        message = "An error occured while parsing '{}'.\n"\
+                  "Original exception: {}"\
+                  .format(schema_file_name, str(original_e))
         super().__init__(message, *args, **kwargs)
+
+
+class SchemaOpenError(SchemaError):
+    """Raise when a schema can not be opened."""
+
+
+class SchemaJSONError(SchemaError):
+    """Raise when a schema contains invalid JSON."""
+
+
+class SchemaValidError(SchemaError):
+    """Raise when a schema contains an invalid schema."""
+
+
+class SchemaStrictnessError(SchemaError):
+    """Raise when a schema doesn't pass the strictness test."""
+
+
+class SchemaKeyError(SchemaError):
+    """Raise when a schema doesn't contain an id-key."""
 
 
 class UnkownSchemaError(SchemaValidatorError):
@@ -54,8 +71,8 @@ class SchemaValidator(object):
 
         self.load_schemas(schema_base_path)
 
-    def _load_strictness_schema(schema_uri):
-        r = requests.get(strictness_schema)
+    def _load_strictness_schema(self, schema_uri):
+        r = requests.get(schema_uri)
         strictness_schema = r.json()
 
         self.strictness_validator = jsonschema.Draft4Validator(
@@ -72,8 +89,16 @@ class SchemaValidator(object):
                     jsonschema.Draft4Validator.check_schema(schema)
                     self.strictness_validator.validate(schema)
                     self.schemas[schema['id']] = schema
-            except Exception as e:
-                raise SchemaError(schema_file_name) from e
+            except OSError as e:
+                raise SchemaOpenError(e, schema_file_name) from e
+            except json.JSONDecodeError as e:
+                raise SchemaJSONError(e, schema_file_name) from e
+            except jsonschema.exceptions.SchemaError as e:
+                raise SchemaValidError(e, schema_file_name) from e
+            except jsonschema.exceptions.ValidationError as e:
+                raise SchemaStrictnessError(e, schema_file_name) from e
+            except KeyError as e:
+                raise SchemaKeyError(e, schema_file_name) from e
 
     def get_schema(self, schema_id):
         try:
