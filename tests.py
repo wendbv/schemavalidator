@@ -88,12 +88,12 @@ def test_load_schemas_valid_schema_id_sub_dir(
     monkeypatch.undo()
     schema_file = tmpdir.mkdir('sub').join('test.json')
     schema_file.write(
-        '{"$schema":"valid", "id": "test.json", "type":"string"}')
+        '{"$schema":"valid", "id": "sub/test.json", "type":"string"}')
     monkeypatch.setattr(
         schema_validator, 'get_schema_files', lambda *args: ['sub/test.json'])
     schema_validator.load_schemas(str(tmpdir))
 
-    assert schema_validator.schemas['sub/test.json']['id'] == 'test.json'
+    assert schema_validator.schemas['sub/test.json']['id'] == 'sub/test.json'
 
 
 def test_load_schemas_invalid_schema(schema_validator, monkeypatch, tmpdir):

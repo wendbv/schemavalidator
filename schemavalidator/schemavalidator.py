@@ -92,7 +92,7 @@ class SchemaValidator(object):
                     schema = json.load(schema_file)
                     jsonschema.Draft4Validator.check_schema(schema)
                     self.strictness_validator.validate(schema)
-                    assert schema['id'] == os.path.basename(schema_file_name)
+                    assert schema['id'] == schema_file_name
                     self.schemas[schema_file_name] = schema
             except OSError as e:
                 raise SchemaOpenError(e, schema_file_name) from e
@@ -130,7 +130,8 @@ class SchemaValidator(object):
         files = glob('{}/*.json'.format(schema_base_path)) +\
             glob('{}/**/*.json'.format(schema_base_path))
 
-        return [f.replace('{}/'.format(schema_base_path), '') for f in files]
+        return [f.replace('{}'.format(schema_base_path), '').strip('/')
+                for f in files]
 
 
 class Resolver(jsonschema.RefResolver):
