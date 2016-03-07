@@ -1,0 +1,11 @@
+{
+    "id": "test.json",
+    "type": "object",
+
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "date": { "$ref": "types/date.json" }
+    }
+}

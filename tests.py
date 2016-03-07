@@ -59,6 +59,43 @@ def test_load_schemas_no_schema_id(schema_validator, monkeypatch, tmpdir):
         schema_validator.load_schemas(str(tmpdir))
 
 
+def test_load_schemas_invalid_schema_id(schema_validator, monkeypatch, tmpdir):
+    monkeypatch.undo()
+    schema_file = tmpdir.join('test.json')
+    schema_file.write(
+        '{"$schema":"id_differs_from_file_name", "id": "not_test.json",'
+        '"type":"string"}')
+    monkeypatch.setattr(
+        schema_validator, 'get_schema_files', lambda *args: ['test.json'])
+    with pytest.raises(SchemaKeyError):
+        schema_validator.load_schemas(str(tmpdir))
+
+
+def test_load_schemas_valid_schema_id(schema_validator, monkeypatch, tmpdir):
+    monkeypatch.undo()
+    schema_file = tmpdir.join('test.json')
+    schema_file.write(
+        '{"$schema":"valid", "id": "test.json", "type":"string"}')
+    monkeypatch.setattr(
+        schema_validator, 'get_schema_files', lambda *args: ['test.json'])
+    schema_validator.load_schemas(str(tmpdir))
+
+    assert schema_validator.schemas['test.json']['id'] == 'test.json'
+
+
+def test_load_schemas_valid_schema_id_sub_dir(
+        schema_validator, monkeypatch, tmpdir):
+    monkeypatch.undo()
+    schema_file = tmpdir.mkdir('sub').join('test.json')
+    schema_file.write(
+        '{"$schema":"valid", "id": "test.json", "type":"string"}')
+    monkeypatch.setattr(
+        schema_validator, 'get_schema_files', lambda *args: ['sub/test.json'])
+    schema_validator.load_schemas(str(tmpdir))
+
+    assert schema_validator.schemas['sub/test.json']['id'] == 'test.json'
+
+
 def test_load_schemas_invalid_schema(schema_validator, monkeypatch, tmpdir):
     monkeypatch.undo()
     schema_file = tmpdir.join('test.json')
@@ -152,10 +189,11 @@ def test_validate_validate_exception(monkeypatch, schema_validator):
 def test_get_schema_files(schema_validator, tmpdir):
     tmpdir.join('test.json').write('')
     tmpdir.join('test.jpg').write('')
+    tmpdir.mkdir('sub').join('test.json').write('')
     tmpdir.mkdir('test')
     files = schema_validator.get_schema_files(str(tmpdir))
 
-    assert files == ['test.json']
+    assert files == ['test.json', 'sub/test.json']
 
 
 def test_resolver_init(schema_validator):
