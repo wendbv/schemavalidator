@@ -4,7 +4,7 @@ from distutils.core import setup
 setup(
     name='schemavalidator',
     packages=['schemavalidator'],
-    version='0.1.0b2',
+    version='0.1.0b3',
     description='A local JSON schema validator based on jsonschema',
     author='Daan Porru (Wend)',
     author_email='daan@wend.nl',
@@ -13,7 +13,7 @@ setup(
     keywords=['json schema', 'validator'],
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
     ],
     install_requires=['jsonschema', 'requests'],
     extras_require={

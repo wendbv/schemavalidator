@@ -1,11 +1,7 @@
+from glob import glob
 import json
 
-# Hack to be compatible with json in python < 3.5
-try:
-    from json import JSONDecodeError
-except:
-    # json in python < 3.5 has no JSONDecodeError
-    JSONDecodeError = ValueError
+from json import JSONDecodeError
 
 import os
 
@@ -57,7 +53,7 @@ class SchemaStrictnessError(SchemaError):
 
 
 class SchemaKeyError(SchemaError):
-    """Raise when a schema doesn't contain an id-key."""
+    """Raise when the schema id-key misses or differs from the file name."""
 
 
 class UnkownSchemaError(SchemaValidatorError):
@@ -96,7 +92,8 @@ class SchemaValidator(object):
                     schema = json.load(schema_file)
                     jsonschema.Draft4Validator.check_schema(schema)
                     self.strictness_validator.validate(schema)
-                    self.schemas[schema['id']] = schema
+                    assert schema['id'] == os.path.basename(schema_file_name)
+                    self.schemas[schema_file_name] = schema
             except OSError as e:
                 raise SchemaOpenError(e, schema_file_name) from e
             except JSONDecodeError as e:
@@ -105,7 +102,7 @@ class SchemaValidator(object):
                 raise SchemaValidError(e, schema_file_name) from e
             except jsonschema.exceptions.ValidationError as e:
                 raise SchemaStrictnessError(e, schema_file_name) from e
-            except KeyError as e:
+            except (KeyError, AssertionError) as e:
                 raise SchemaKeyError(e, schema_file_name) from e
 
     def get_schema(self, schema_id):
@@ -130,8 +127,10 @@ class SchemaValidator(object):
             raise SchemaValidationError(e.message) from e
 
     def get_schema_files(self, schema_base_path):
-        return [file_name for file_name in os.listdir(schema_base_path)
-                if os.path.splitext(file_name)[1] == '.json']
+        files = glob('{}/*.json'.format(schema_base_path)) +\
+            glob('{}/**/*.json'.format(schema_base_path))
+
+        return [f.replace('{}/'.format(schema_base_path), '') for f in files]
 
 
 class Resolver(jsonschema.RefResolver):
