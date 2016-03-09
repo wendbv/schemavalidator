@@ -127,8 +127,7 @@ class SchemaValidator(object):
             raise SchemaValidationError(e.message) from e
 
     def get_schema_files(self, schema_base_path):
-        files = glob('{}/*.json'.format(schema_base_path)) +\
-            glob('{}/**/*.json'.format(schema_base_path))
+        files = glob('{}/**/*.json'.format(schema_base_path), recursive=True)
 
         return [f.replace('{}'.format(schema_base_path), '').strip('/')
                 for f in files]
