@@ -206,6 +206,7 @@ def test_resolver_from_url(schema_validator, monkeypatch):
         schema_validator, 'get_schema', lambda url: '{}-schema'.format(url))
     resolver = Resolver(schema_validator, {})
     assert resolver.resolve_from_url('url') == 'url-schema'
+    assert resolver.resolve_from_url('/url') == 'url-schema'
 
 
 def test_validation_error():

@@ -141,4 +141,4 @@ class Resolver(jsonschema.RefResolver):
         super().__init__('', schema)
 
     def resolve_from_url(self, url):
-        return self.schema_validator.get_schema(url)
+        return self.schema_validator.get_schema(url.strip('/'))
