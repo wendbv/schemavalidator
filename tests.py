@@ -4,7 +4,7 @@ import jsonschema
 import requests
 import pytest
 
-from schemavalidator import SchemaValidator, SchemaError, UnkownSchemaError,\
+from schemavalidator import SchemaValidator, UnkownSchemaError,\
     SchemaValidatorError, SchemaValidationError, SchemaOpenError,\
     SchemaJSONError, SchemaKeyError, SchemaValidError, SchemaStrictnessError
 from schemavalidator.schemavalidator import Resolver
