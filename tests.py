@@ -34,7 +34,7 @@ def test_load_schemas_non_existing_schema_file(schema_validator, monkeypatch,
     monkeypatch.undo()
     monkeypatch.setattr(
         schema_validator, 'get_schema_files',
-        lambda *args: ['non_existent.json'])
+        lambda *args: ['/non_existent.json'])
     with pytest.raises(SchemaOpenError):
         schema_validator.load_schemas(str(tmpdir))
 
@@ -44,7 +44,7 @@ def test_load_schemas_invalid_json(schema_validator, monkeypatch, tmpdir):
     schema_file = tmpdir.join('test.json')
     schema_file.write('{')
     monkeypatch.setattr(
-        schema_validator, 'get_schema_files', lambda *args: ['test.json'])
+        schema_validator, 'get_schema_files', lambda *args: ['/test.json'])
     with pytest.raises(SchemaJSONError):
         schema_validator.load_schemas(str(tmpdir))
 
@@ -52,9 +52,9 @@ def test_load_schemas_invalid_json(schema_validator, monkeypatch, tmpdir):
 def test_load_schemas_no_schema_id(schema_validator, monkeypatch, tmpdir):
     monkeypatch.undo()
     schema_file = tmpdir.join('test.json')
-    schema_file.write('{"$schema":"no_id", "type":"string"}')
+    schema_file.write('{"$schema":"/no_id", "type":"string"}')
     monkeypatch.setattr(
-        schema_validator, 'get_schema_files', lambda *args: ['test.json'])
+        schema_validator, 'get_schema_files', lambda *args: ['/test.json'])
     with pytest.raises(SchemaKeyError):
         schema_validator.load_schemas(str(tmpdir))
 
@@ -63,10 +63,10 @@ def test_load_schemas_invalid_schema_id(schema_validator, monkeypatch, tmpdir):
     monkeypatch.undo()
     schema_file = tmpdir.join('test.json')
     schema_file.write(
-        '{"$schema":"id_differs_from_file_name", "id": "not_test.json",'
+        '{"$schema":"id_differs_from_file_name", "id": "/not_test.json",'
         '"type":"string"}')
     monkeypatch.setattr(
-        schema_validator, 'get_schema_files', lambda *args: ['test.json'])
+        schema_validator, 'get_schema_files', lambda *args: ['/test.json'])
     with pytest.raises(SchemaKeyError):
         schema_validator.load_schemas(str(tmpdir))
 
@@ -75,12 +75,12 @@ def test_load_schemas_valid_schema_id(schema_validator, monkeypatch, tmpdir):
     monkeypatch.undo()
     schema_file = tmpdir.join('test.json')
     schema_file.write(
-        '{"$schema":"valid", "id": "test.json", "type":"string"}')
+        '{"$schema":"valid", "id": "/test.json", "type":"string"}')
     monkeypatch.setattr(
-        schema_validator, 'get_schema_files', lambda *args: ['test.json'])
+        schema_validator, 'get_schema_files', lambda *args: ['/test.json'])
     schema_validator.load_schemas(str(tmpdir))
 
-    assert schema_validator.schemas['test.json']['id'] == 'test.json'
+    assert schema_validator.schemas['/test.json']['id'] == '/test.json'
 
 
 def test_load_schemas_valid_schema_id_sub_dir(
@@ -88,12 +88,12 @@ def test_load_schemas_valid_schema_id_sub_dir(
     monkeypatch.undo()
     schema_file = tmpdir.mkdir('sub').join('test.json')
     schema_file.write(
-        '{"$schema":"valid", "id": "sub/test.json", "type":"string"}')
+        '{"$schema":"valid", "id": "/sub/test.json", "type":"string"}')
     monkeypatch.setattr(
-        schema_validator, 'get_schema_files', lambda *args: ['sub/test.json'])
+        schema_validator, 'get_schema_files', lambda *args: ['/sub/test.json'])
     schema_validator.load_schemas(str(tmpdir))
 
-    assert schema_validator.schemas['sub/test.json']['id'] == 'sub/test.json'
+    assert schema_validator.schemas['/sub/test.json']['id'] == '/sub/test.json'
 
 
 def test_load_schemas_invalid_schema(schema_validator, monkeypatch, tmpdir):
@@ -101,7 +101,7 @@ def test_load_schemas_invalid_schema(schema_validator, monkeypatch, tmpdir):
     schema_file = tmpdir.join('test.json')
     schema_file.write('{"$schema":"invalid","type":"objects"}')
     monkeypatch.setattr(
-        schema_validator, 'get_schema_files', lambda *args: ['test.json'])
+        schema_validator, 'get_schema_files', lambda *args: ['/test.json'])
     with pytest.raises(SchemaValidError):
         schema_validator.load_schemas(str(tmpdir))
 
@@ -111,7 +111,7 @@ def test_load_schema_invalid_strictness(schema_validator, monkeypatch, tmpdir):
     schema_file = tmpdir.join('test.json')
     schema_file.write('{"$schema":"invalid_strictness","type": "string"}')
     monkeypatch.setattr(
-        schema_validator, 'get_schema_files', lambda *args: ['test.json'])
+        schema_validator, 'get_schema_files', lambda *args: ['/test.json'])
 
     def raise_exception(x):
         raise jsonschema.exceptions.ValidationError('Mocked validation error')
@@ -127,16 +127,17 @@ def test_load_schemas_stores_valid_schema(schema_validator, monkeypatch,
                                           tmpdir):
     monkeypatch.undo()
     schema_file = tmpdir.join('test.json')
-    schema_file.write('{"$schema":"valid","id":"test.json","type":"string"}')
+    schema_file.write('{"$schema":"valid","id":"/test.json","type":"string"}')
     monkeypatch.setattr(
-        schema_validator, 'get_schema_files', lambda *args: ['test.json'])
+        schema_validator, 'get_schema_files', lambda *args: ['/test.json'])
     schema_validator.load_schemas(str(tmpdir))
-    assert schema_validator.schemas['test.json']['id'] == 'test.json'
+    assert schema_validator.schemas['/test.json']['id'] == '/test.json'
 
 
 def test_get_schema(schema_validator, monkeypatch):
-    monkeypatch.setattr(schema_validator, 'schemas', {'test_schema': 'test'})
+    monkeypatch.setattr(schema_validator, 'schemas', {'/test_schema': 'test'})
 
+    assert schema_validator.get_schema('/test_schema') == 'test'
     assert schema_validator.get_schema('test_schema') == 'test'
 
 
@@ -151,7 +152,7 @@ def test_validate_resolver_exception(monkeypatch, schema_validator):
     monkeypatch.setattr(Resolver, '__init__', raise_exception)
 
     with pytest.raises(SchemaValidatorError):
-        schema_validator.validate({}, 'test.json')
+        schema_validator.validate({}, '/test.json')
 
 
 def test_validate_validator_exception(monkeypatch, schema_validator):
@@ -161,7 +162,7 @@ def test_validate_validator_exception(monkeypatch, schema_validator):
         jsonschema.Draft4Validator, '__init__', raise_exception)
 
     with pytest.raises(SchemaValidatorError):
-        schema_validator.validate({}, 'test.json')
+        schema_validator.validate({}, '/test.json')
 
 
 def test_validate_validate(monkeypatch, schema_validator):
@@ -172,7 +173,7 @@ def test_validate_validate(monkeypatch, schema_validator):
 
     monkeypatch.setattr(
         jsonschema.Draft4Validator, 'validate', lambda *args: None)
-    schema_validator.validate({}, 'test.json')
+    schema_validator.validate({}, '/test.json')
 
 
 def test_validate_validate_exception(monkeypatch, schema_validator):
@@ -183,7 +184,7 @@ def test_validate_validate_exception(monkeypatch, schema_validator):
 
     monkeypatch.setattr(
         jsonschema.Draft4Validator, 'validate', lambda *args: raise_exception)
-    schema_validator.validate({}, 'test.json')
+    schema_validator.validate({}, '/test.json')
 
 
 def test_get_schema_files(schema_validator, tmpdir):
@@ -191,9 +192,12 @@ def test_get_schema_files(schema_validator, tmpdir):
     tmpdir.join('test.jpg').write('')
     tmpdir.mkdir('sub').join('test.json').write('')
     tmpdir.mkdir('test')
-    files = schema_validator.get_schema_files(str(tmpdir))
 
-    assert files == ['test.json', 'sub/test.json']
+    files = schema_validator.get_schema_files(str(tmpdir))
+    assert files == ['/test.json', '/sub/test.json']
+
+    files = schema_validator.get_schema_files('{}/'.format(tmpdir))
+    assert files == ['/test.json', '/sub/test.json']
 
 
 def test_resolver_init(schema_validator):
@@ -205,8 +209,7 @@ def test_resolver_from_url(schema_validator, monkeypatch):
     monkeypatch.setattr(
         schema_validator, 'get_schema', lambda url: '{}-schema'.format(url))
     resolver = Resolver(schema_validator, {})
-    assert resolver.resolve_from_url('url') == 'url-schema'
-    assert resolver.resolve_from_url('/url') == 'url-schema'
+    assert resolver.resolve_from_url('/url') == '/url-schema'
 
 
 def test_validation_error():

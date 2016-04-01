@@ -86,7 +86,9 @@ class SchemaValidator(object):
         self.schemas = {}
 
         for schema_file_name in self.get_schema_files(schema_base_path):
-            full_path = os.path.join(schema_base_path, schema_file_name)
+            # Convert schema_file_name to the actual file path.
+            full_path = os.path.join(
+                schema_base_path, schema_file_name.lstrip('/'))
             try:
                 with open(full_path) as schema_file:
                     schema = json.load(schema_file)
@@ -107,6 +109,8 @@ class SchemaValidator(object):
 
     def get_schema(self, schema_id):
         try:
+            # Force absolute path.
+            schema_id = '/{}'.format(schema_id.lstrip('/'))
             return self.schemas[schema_id]
         except KeyError:
             raise UnkownSchemaError(
@@ -129,7 +133,8 @@ class SchemaValidator(object):
     def get_schema_files(self, schema_base_path):
         files = glob('{}/**/*.json'.format(schema_base_path), recursive=True)
 
-        return [f.replace('{}'.format(schema_base_path), '').strip('/')
+        # Convert paths as if schema_base_path is the root folder.
+        return ['/{}'.format(f.replace(schema_base_path, '').lstrip('/'))
                 for f in files]
 
 
@@ -141,4 +146,4 @@ class Resolver(jsonschema.RefResolver):
         super().__init__('', schema)
 
     def resolve_from_url(self, url):
-        return self.schema_validator.get_schema(url.strip('/'))
+        return self.schema_validator.get_schema(url)
