@@ -187,19 +187,18 @@ def test_validate_validate_exception(monkeypatch, schema_validator):
     schema_validator.validate({}, '/test.json')
 
 
-def test_validate_validate_string(schema_validator, mocker):
+def test_validate_validate_json_string(schema_validator, mocker):
+    mocker.patch("jsonschema.Draft4Validator")
     mocker.patch.object(schema_validator, 'get_schema', return_value={})
     mocker.patch.object(Resolver, '__init__', return_value=None)
-    mocker.patch.object(jsonschema.Draft4Validator, '__init__',
-                        return_value=None)
     mocker.patch.object(jsonschema.Draft4Validator, 'validate')
 
     schema_validator.validate_json_string('{}', '/test.json')
 
 
-def test_validate_validate_string_exception(schema_validator, mocker):
+def test_validate_validate_json_string_exception(schema_validator, mocker):
+    mocker.patch('schemavalidator.schemavalidator.Resolver')
     mocker.patch.object(schema_validator, 'get_schema', return_value={})
-    mocker.patch.object(Resolver, '__init__', return_value=None)
     mocker.patch.object(jsonschema.Draft4Validator, '__init__',
                         return_value=None)
     mocker.patch.object(jsonschema.Draft4Validator, 'validate',
