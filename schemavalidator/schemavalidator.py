@@ -130,6 +130,9 @@ class SchemaValidator(object):
         except ValidationError as e:
             raise SchemaValidationError(e.message) from e
 
+    def validate_string(self, document, schema_id):
+        return self.validate(json.loads(document), schema_id)
+
     def get_schema_files(self, schema_base_path):
         files = glob('{}/**/*.json'.format(schema_base_path), recursive=True)
 

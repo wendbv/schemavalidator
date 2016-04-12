@@ -187,6 +187,29 @@ def test_validate_validate_exception(monkeypatch, schema_validator):
     schema_validator.validate({}, '/test.json')
 
 
+def test_validate_validate_string(monkeypatch, schema_validator, mocker):
+    mocker.patch.object(schema_validator, 'get_schema', return_value={})
+    mocker.patch.object(Resolver, '__init__', return_value=None)
+    mocker.patch.object(jsonschema.Draft4Validator, '__init__',
+                        return_value=None)
+    mocker.patch.object(jsonschema.Draft4Validator, 'validate',
+                        return_value=None)
+
+    schema_validator.validate_string('{}', '/test.json')
+
+
+def test_validate_validate_string_exception(schema_validator, mocker):
+    mocker.patch.object(schema_validator, 'get_schema', return_value={})
+    mocker.patch.object(Resolver, '__init__', return_value=None)
+    mocker.patch.object(jsonschema.Draft4Validator, '__init__',
+                        return_value=None)
+    mocker.patch.object(jsonschema.Draft4Validator, 'validate',
+                        return_value=None,
+                        side_effect=jsonschema.exceptions.ValidationError(""))
+
+    with pytest.raises(SchemaValidatorError):
+        schema_validator.validate_string('{}', '/test.json')
+
 def test_get_schema_files(schema_validator, tmpdir):
     tmpdir.join('test.json').write('')
     tmpdir.join('test.jpg').write('')
