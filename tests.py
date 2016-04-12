@@ -178,7 +178,7 @@ def test_validate_validate(monkeypatch, schema_validator):
 
 def test_validate_validate_exception(mocker, schema_validator):
     mocker.patch.object(schema_validator, 'get_schema', return_value={})
-    mocker.patch.object(Resolver, '__init__', return_value=None)
+    mocker.patch('schemavalidator.schemavalidator.Resolver')
     mocker.patch.object(jsonschema.Draft4Validator, '__init__',
                         return_value=None)
     mocker.patch.object(jsonschema.Draft4Validator, 'validate',
