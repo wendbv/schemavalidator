@@ -195,7 +195,7 @@ def test_validate_validate_string(monkeypatch, schema_validator, mocker):
     mocker.patch.object(jsonschema.Draft4Validator, 'validate',
                         return_value=None)
 
-    schema_validator.validate_string('{}', '/test.json')
+    schema_validator.validate_json_string('{}', '/test.json')
 
 
 def test_validate_validate_string_exception(schema_validator, mocker):
@@ -208,7 +208,7 @@ def test_validate_validate_string_exception(schema_validator, mocker):
                         side_effect=jsonschema.exceptions.ValidationError(""))
 
     with pytest.raises(SchemaValidatorError):
-        schema_validator.validate_string('{}', '/test.json')
+        schema_validator.validate_json_string('{}', '/test.json')
 
 def test_get_schema_files(schema_validator, tmpdir):
     tmpdir.join('test.json').write('')
