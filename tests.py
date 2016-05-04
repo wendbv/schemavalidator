@@ -1,16 +1,22 @@
 from collections import namedtuple
+import logging
+import sys
 
 import jsonschema
 import requests
 import pytest
+import mock
 
 from schemavalidator import SchemaValidator, UnkownSchemaError,\
     SchemaValidatorError, SchemaValidationError, SchemaOpenError,\
     SchemaJSONError, SchemaKeyError, SchemaValidError, SchemaStrictnessError
 from schemavalidator.schemavalidator import Resolver
+from jsonschema.exceptions import ValidationError
 
 # Validator mock
 Validator = namedtuple('Validator', ['validate'])
+
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 def raise_exception(*args, **kwargs):
@@ -27,6 +33,78 @@ def schema_validator(monkeypatch):
     SchemaValidator.strictness_validator = strictness
 
     return SchemaValidator()
+
+
+def test_validation_error_log(mocker, tmpdir):
+    mocker.patch.object(SchemaValidator, 'load_schemas')
+    mocker.patch.object(SchemaValidator, '_load_strictness_schema')
+    mocker.patch.object(SchemaValidator, 'get_schema',
+                        mocker.Mock(return_value={}))
+    logger = mocker.patch('schemavalidator.schemavalidator.logger',
+                          info=mocker.Mock())
+    validator_mock = mocker.Mock(
+        validate=mocker.Mock(side_effect=ValidationError('bla')),
+        iter_errors=mocker.Mock(
+            return_value=[
+                mocker.Mock(
+                    context=[],
+                    absolute_schema_path=['a', 'b'],
+                    absolute_path=['c', 'd'],
+                    message='foobar'
+                )
+            ]
+        )
+    )
+    mocker.patch('jsonschema.Draft4Validator', return_value=validator_mock)
+
+    validator = SchemaValidator()
+
+    with pytest.raises(SchemaValidationError):
+        validator.validate({}, "foo.json")
+
+    logger.debug.assert_has_calls([
+        mock.call("\n╔══════════════════╤═══════════════╤═════════╗"
+                  "\n║   schema path    │ instance path │ message ║"
+                  "\n╠══════════════════╪═══════════════╪═════════╣"
+                  "\n║ schema['a']['b'] │ $['c']['d']   │ foobar  ║"
+                  "\n╚══════════════════╧═══════════════╧═════════╝"),
+    ])
+
+
+def test_validation_error_log_empty_paths(mocker, tmpdir):
+    mocker.patch.object(SchemaValidator, 'load_schemas')
+    mocker.patch.object(SchemaValidator, '_load_strictness_schema')
+    mocker.patch.object(SchemaValidator, 'get_schema',
+                        mocker.Mock(return_value={}))
+    logger = mocker.patch('schemavalidator.schemavalidator.logger',
+                          info=mocker.Mock())
+    validator_mock = mocker.Mock(
+        validate=mocker.Mock(side_effect=ValidationError('bla')),
+        iter_errors=mocker.Mock(
+            return_value=[
+                mocker.Mock(
+                    context=[],
+                    absolute_schema_path=[],
+                    absolute_path=[],
+                    message='foobar'
+                )
+            ]
+        )
+    )
+    mocker.patch('jsonschema.Draft4Validator', return_value=validator_mock)
+
+    validator = SchemaValidator()
+
+    with pytest.raises(SchemaValidationError):
+        validator.validate({}, "foo.json")
+
+    logger.debug.assert_has_calls([
+        mock.call('\n╔═════════════╤═══════════════╤═════════╗'
+                  '\n║ schema path │ instance path │ message ║'
+                  '\n╠═════════════╪═══════════════╪═════════╣'
+                  '\n║ schema      │ $             │ foobar  ║'
+                  '\n╚═════════════╧═══════════════╧═════════╝')
+    ])
 
 
 def test_load_schemas_non_existing_schema_file(schema_validator, monkeypatch,
