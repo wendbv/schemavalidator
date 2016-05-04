@@ -4,13 +4,13 @@ import json
 from json import JSONDecodeError
 
 import os
-import logging
 
 import jsonschema
 from jsonschema.exceptions import ValidationError
 import requests
 
-logger = logging.getLogger(__name__)
+from .util import log_error_table
+
 
 class SchemaValidatorError(Exception):
     """Base Exception for the schemavalidator module."""
@@ -130,44 +130,7 @@ class SchemaValidator(object):
         try:
             validator.validate(document, schema)
         except ValidationError as e:
-            errors = []
-            todo = list(validator.iter_errors(document, schema))
-            while todo:
-                error = todo.pop()
-                errors.append((list(error.absolute_schema_path),
-                               list(error.absolute_path), error.message))
-                todo.extend(error.context)
-            errors.sort()
-            table = []
-            for error in errors:
-                schema_path, path, message = error
-                if len(path) == 0:
-                    path = "$"
-                else:
-                    path = "$["+']['.join((repr(x) for x in path))+"]"
-                if len(schema_path) == 0:
-                    schema_path = "schema"
-                else:
-                    schema_path = "schema[" + ']['.join(
-                        (repr(x) for x in schema_path)) + "]"
-
-                table.append([schema_path, path, message])
-            if len(table) > 0:
-                headings = ['schema path', 'instance path', 'message']
-                widths = [len(max(list(col)+[headings[i]],
-                              key=lambda v:len(v)))
-                          for i, col in enumerate(zip(*table))]
-                logger.info('╔═'+'═╤═'.join(['═'*w for w in widths])+'═╗')
-                logger.info('║ '+' │ '.join([
-                    h.center(widths[i]) for i, h in enumerate(headings)
-                ])+' ║')
-                logger.info('╠═'+'═╪═'.join(['═'*w for w in widths])+'═╣')
-                for row in table:
-                    row_padded = []
-                    for i, column in enumerate(row):
-                        row_padded.append(column.ljust(widths[i]))
-                    logger.info('║ '+' │ '.join(row_padded)+' ║')
-                logger.info('╚═'+'═╧═'.join(['═'*w for w in widths])+'═╝')
+            log_error_table(validator,document,schema)
             raise SchemaValidationError(e.message) from e
 
     def validate_json_string(self, json_string, schema_id):
