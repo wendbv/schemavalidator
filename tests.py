@@ -35,6 +35,63 @@ def schema_validator(monkeypatch):
     return SchemaValidator()
 
 
+def test_validation_nasty_error_log(mocker, tmpdir):
+    logger = mocker.patch('schemavalidator.schemavalidator.logger',
+        info=mocker.Mock())
+
+    schema_file=tmpdir.join('foo.json')
+    schema_file.write('''
+        {
+            "id": "/foo.json",
+            "anyOf":[
+                {
+                    "properties":{
+                        "type":{
+                            "type":"string",
+                            "enum": ["person"]
+                        },
+                        "name":{
+                            "type":"string"
+                        },
+                        "age":{
+                            "type":"integer"
+                        }
+                    },
+                    "required":["name","age"]
+                },
+                {
+                    "properties":{
+                        "type":{
+                            "type":"string",
+                            "enum":["boolean"]
+                        },
+                        "value":{
+                            "type":"boolean"
+                        }
+                    },
+                    "required":["value"]
+                }
+            ]
+        }
+
+    ''')
+    validator = SchemaValidator(str(tmpdir))
+
+    with pytest.raises(SchemaValidationError):
+        validator.validate({}, "foo.json")
+
+    logger.debug.assert_has_calls([
+        mock.call("\n╔════════════════════════════════╤═══════════════╤════════════════════════════════════════════════╗"
+                  "\n║          schema path           │ instance path │                    message                     ║"
+                  "\n╠════════════════════════════════╪═══════════════╪════════════════════════════════════════════════╣"
+                  "\n║ schema['anyOf']                │ $             │ {} is not valid under any of the given schemas ║"
+                  "\n║ schema['anyOf'][0]['required'] │ $             │ 'name' is a required property                  ║"
+                  "\n║ schema['anyOf'][0]['required'] │ $             │ 'age' is a required property                   ║"
+                  "\n║ schema['anyOf'][1]['required'] │ $             │ 'value' is a required property                 ║"
+                  "\n╚════════════════════════════════╧═══════════════╧════════════════════════════════════════════════╝")
+    ])
+
+
 def test_validation_error_log(mocker, tmpdir):
     mocker.patch.object(SchemaValidator, 'load_schemas')
     mocker.patch.object(SchemaValidator, '_load_strictness_schema')

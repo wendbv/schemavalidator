@@ -25,12 +25,16 @@ def format_path(path, prefix="$"):
 
 def collect_errors(validator, document, schema):
     todo = list(validator.iter_errors(document, schema))
+    for error in todo:
+        error.level=0
     errors = []
     while todo:
-        error = todo.pop()
+        error = todo.pop(0)  # depth first
         errors.append(error)
+        for child in error.context:
+            child.level=error.level
         todo.extend(error.context)
-    errors.sort(key=lambda e: e.absolute_schema_path)
+    errors.sort(key=lambda e: (e.level, list(e.absolute_path), len(e.absolute_schema_path)))
     return errors
 
 
