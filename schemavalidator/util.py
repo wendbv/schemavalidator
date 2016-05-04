@@ -1,14 +1,10 @@
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-def log_error_table(validator, document, schema, level=logging.DEBUG):
+def format_error_table(validator, document, schema):
     errors = collect_errors(validator, document, schema)
     table = errors_to_table(errors)
     if len(table) > 0:
-        logger.log(level, format_table(table, ['schema path', 'instance path',
-                                               'message']))
+        return format_table(table, ['schema path', 'instance path', 'message'])
+    else:
+        return "No additional info available."
 
 
 def errors_to_table(errors):

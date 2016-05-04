@@ -4,12 +4,14 @@ import json
 from json import JSONDecodeError
 
 import os
+import logging
 
 import jsonschema
 from jsonschema.exceptions import ValidationError
 import requests
+from .util import format_error_table
 
-from .util import log_error_table
+logger = logging.getLogger(__name__)
 
 
 class SchemaValidatorError(Exception):
@@ -130,7 +132,7 @@ class SchemaValidator(object):
         try:
             validator.validate(document, schema)
         except ValidationError as e:
-            log_error_table(validator,document,schema)
+            logger.debug(format_error_table(validator, document, schema))
             raise SchemaValidationError(e.message) from e
 
     def validate_json_string(self, json_string, schema_id):

@@ -40,7 +40,7 @@ def test_validation_error_log(mocker, tmpdir):
     mocker.patch.object(SchemaValidator, '_load_strictness_schema')
     mocker.patch.object(SchemaValidator, 'get_schema',
                         mocker.Mock(return_value={}))
-    logger = mocker.patch('schemavalidator.util.logger',
+    logger = mocker.patch('schemavalidator.schemavalidator.logger',
                           info=mocker.Mock())
     validator_mock = mocker.Mock(
         validate=mocker.Mock(side_effect=ValidationError('bla')),
@@ -62,9 +62,8 @@ def test_validation_error_log(mocker, tmpdir):
     with pytest.raises(SchemaValidationError):
         validator.validate({}, "foo.json")
 
-    logger.log.assert_has_calls([
-        mock.call(logging.DEBUG,
-                  "\n╔══════════════════╤═══════════════╤═════════╗"
+    logger.debug.assert_has_calls([
+        mock.call("\n╔══════════════════╤═══════════════╤═════════╗"
                   "\n║   schema path    │ instance path │ message ║"
                   "\n╠══════════════════╪═══════════════╪═════════╣"
                   "\n║ schema['a']['b'] │ $['c']['d']   │ foobar  ║"
@@ -77,7 +76,7 @@ def test_validation_error_log_empty_paths(mocker, tmpdir):
     mocker.patch.object(SchemaValidator, '_load_strictness_schema')
     mocker.patch.object(SchemaValidator, 'get_schema',
                         mocker.Mock(return_value={}))
-    logger = mocker.patch('schemavalidator.util.logger',
+    logger = mocker.patch('schemavalidator.schemavalidator.logger',
                           info=mocker.Mock())
     validator_mock = mocker.Mock(
         validate=mocker.Mock(side_effect=ValidationError('bla')),
@@ -99,9 +98,8 @@ def test_validation_error_log_empty_paths(mocker, tmpdir):
     with pytest.raises(SchemaValidationError):
         validator.validate({}, "foo.json")
 
-    logger.log.assert_has_calls([
-        mock.call(logging.DEBUG,
-                  '\n╔═════════════╤═══════════════╤═════════╗'
+    logger.debug.assert_has_calls([
+        mock.call('\n╔═════════════╤═══════════════╤═════════╗'
                   '\n║ schema path │ instance path │ message ║'
                   '\n╠═════════════╪═══════════════╪═════════╣'
                   '\n║ schema      │ $             │ foobar  ║'
