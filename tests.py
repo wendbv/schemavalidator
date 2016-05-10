@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import namedtuple,deque
 import logging
 import sys
 
@@ -40,7 +40,7 @@ def test_validation_error_log(mocker, tmpdir):
     mocker.patch.object(SchemaValidator, '_load_strictness_schema')
     mocker.patch.object(SchemaValidator, 'get_schema',
                         mocker.Mock(return_value={}))
-    logger = mocker.patch('schemavalidator.schemavalidator.logger',
+    logger = mocker.patch('schemavalidator.util.logger',
                           info=mocker.Mock())
     validator_mock = mocker.Mock(
         validate=mocker.Mock(side_effect=ValidationError('bla')),
@@ -48,8 +48,8 @@ def test_validation_error_log(mocker, tmpdir):
             return_value=[
                 mocker.Mock(
                     context=[],
-                    absolute_schema_path=['a', 'b'],
-                    absolute_path=['c', 'd'],
+                    absolute_schema_path=deque(['a', 'b']),
+                    absolute_path=deque(['c', 'd']),
                     message='foobar'
                 )
             ]
@@ -76,7 +76,7 @@ def test_validation_error_log_empty_paths(mocker, tmpdir):
     mocker.patch.object(SchemaValidator, '_load_strictness_schema')
     mocker.patch.object(SchemaValidator, 'get_schema',
                         mocker.Mock(return_value={}))
-    logger = mocker.patch('schemavalidator.schemavalidator.logger',
+    logger = mocker.patch('schemavalidator.util.logger',
                           info=mocker.Mock())
     validator_mock = mocker.Mock(
         validate=mocker.Mock(side_effect=ValidationError('bla')),
