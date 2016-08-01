@@ -254,6 +254,16 @@ def test_validate_validate(monkeypatch, schema_validator):
     schema_validator.validate({}, '/test.json')
 
 
+def test_validate_validate_from_schema(monkeypatch, schema_validator):
+    monkeypatch.setattr(Resolver, '__init__', lambda *args: None)
+    monkeypatch.setattr(
+        jsonschema.Draft4Validator, '__init__', lambda *args, **kwargs: None)
+
+    monkeypatch.setattr(
+        jsonschema.Draft4Validator, 'validate', lambda *args: None)
+    schema_validator.validate({}, {})
+
+
 def test_validate_validate_exception(mocker, schema_validator):
     mocker.patch.object(schema_validator, 'get_schema', return_value={})
     mocker.patch('schemavalidator.schemavalidator.Resolver')
