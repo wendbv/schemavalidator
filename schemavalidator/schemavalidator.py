@@ -120,8 +120,11 @@ class SchemaValidator(object):
             raise UnkownSchemaError(
                 "No schema found with id '{}'".format(schema_id))
 
-    def validate(self, document, schema_id):
-        schema = self.get_schema(schema_id)
+    def validate(self, document, schema_or_id):
+        if isinstance(schema_or_id, str):
+            schema = self.get_schema(schema_or_id)
+        else:
+            schema = schema_or_id
 
         try:
             resolver = Resolver(self, schema)
