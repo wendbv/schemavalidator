@@ -85,3 +85,28 @@ except SchemaValidationError:
 
 Refences are followed by `id` and not by filename. When the `id` field is
 omitted, the filename is used as a fallback.
+
+## Validate custom schema
+
+If you want to validate against a schema that's not in its own file, you can
+pass the schema instead of a schema id.
+
+```python
+from schemavalidator import SchemaValidator, SchemaValidationError
+
+validator = SchemaValidator('schemas/')
+
+document = [{"name": "My Name"}]
+schema = {
+    '$schema': 'http://json-schema.org/draft-04/schema#',
+    'type': 'array',
+    'items': {
+        '$ref': 'item.json'
+    }
+}
+
+try:
+    validator.validate(document, schema)
+except SchemaValidationError:
+    pass
+```
