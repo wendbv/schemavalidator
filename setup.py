@@ -1,10 +1,10 @@
-from distutils.core import setup
+from setuptools import setup
 
 
 setup(
     name='schemavalidator',
     packages=['schemavalidator'],
-    version='0.1.0b10',
+    version='0.1.0b11',
     description='A local JSON schema validator based on jsonschema',
     author='Daan Porru (Wend)',
     author_email='daan@wend.nl',
