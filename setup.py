@@ -4,7 +4,7 @@ from setuptools import setup
 setup(
     name='schemavalidator',
     packages=['schemavalidator'],
-    version='0.1.0b11',
+    version='0.1.0b12',
     description='A local JSON schema validator based on jsonschema',
     author='Daan Porru (Wend)',
     author_email='daan@wend.nl',
