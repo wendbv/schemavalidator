@@ -72,18 +72,20 @@ class SchemaValidator(object):
     """
     schemas = None
 
-    def __init__(self, schema_base_path='schemas/',
-                 strictness_schema='http://json-schema.org/draft-04/schema'):
+    def __init__(self, schema_base_path='schemas/', strictness_schema=None):
         self._load_strictness_schema(strictness_schema)
 
         self.load_schemas(schema_base_path)
 
     def _load_strictness_schema(self, schema_uri):
-        r = requests.get(schema_uri)
-        strictness_schema = r.json()
+        if schema_uri is None:
+            self.strictness_validator = None
+        else:
+            r = requests.get(schema_uri)
+            strictness_schema = r.json()
 
-        self.strictness_validator = jsonschema.Draft4Validator(
-            strictness_schema)
+            self.strictness_validator = jsonschema.Draft4Validator(
+                strictness_schema)
 
     def load_schemas(self, schema_base_path):
         self.schemas = {}
@@ -96,7 +98,8 @@ class SchemaValidator(object):
                 with open(full_path) as schema_file:
                     schema = json.load(schema_file)
                     jsonschema.Draft4Validator.check_schema(schema)
-                    self.strictness_validator.validate(schema)
+                    if self.strictness_validator is not None:
+                        self.strictness_validator.validate(schema)
                     assert schema['id'] == schema_file_name
                     self.schemas[schema_file_name] = schema
             except OSError as e:
